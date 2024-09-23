@@ -16,4 +16,5 @@ Authors:
    1. Assuming the Arduino is properly constructed and installed with the Troll Bridge program...
    2. Connect the Arduino to the device that will run the Node.js server via USB cable.
       
-![image](https://github.com/user-attachments/assets/97dfb610-a2ce-4c1a-b67f-0533ee04a55e)
+![image](https://people.rit.edu/mc2682/235/selfie.jpg)
+Maxwell Chu .jpg
