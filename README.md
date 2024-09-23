@@ -8,8 +8,8 @@ Authors:
 
 ## How To Use
 1. Get the Node.js Server in Order
-    1. Add your OpenAI API key to a .env file in the "node" directory, on the same level as package.json. The varable name should be [TODO]
-    2. Open a terminal in the "node" directory.
+    1. Add your OpenAI API key to a .env file in the "server" directory, on the same level as package.json. The varable name should be [TODO]
+    2. Open a terminal in the "server" directory.
     3. Run the command `npm i` to install the required packages.
     4. Run the command `npm start` to initialize the server.
 2. Connect the Arduino to the PC
