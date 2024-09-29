@@ -1,9 +1,15 @@
 // npm packages
 const express = require('express');
 const OpenAI = require('openai');
+require('dotenv').config();
 
 // PLEASE insert API key from discord and REMOVE before commits
-const API_KEY = "";
+if (!process.env.API_KEY) {
+    console.log("ERROR: NO API KEY FOUND IN .ENV");
+    return;
+}
+
+const API_KEY = process.env.API_KEY;
 
 // Create openai component
 const openai = new OpenAI({
