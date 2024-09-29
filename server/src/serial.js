@@ -1,11 +1,12 @@
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
+const axios = require('axios');
 
-// Adjust the path
+// Adjust the arduino path
 const port = new SerialPort('/dev/ttyUSB0', { baudRate: 9600 });
 const parser = port.pipe(new Readline({ delimiter: '\n' }));
 
-// Open port and handle errors
+// Open serialport and handle errors
 port.on('open', () => {
   console.log('Serial port opened.');
 });
@@ -16,10 +17,17 @@ port.on('error', (err) => {
 });
 
 // Listen for data from Arduino (requesting more questions)
-parser.on('data', (data) => {
+parser.on('data', async (data) => {
   console.log('Received from Arduino:', data.trim());
 
   // Make a request for questions
+  console.log('Making a call to /trivia endpoint...');
+
+  try {
+    await axios.get('http://localhost:3000/trivia');
+  } catch (error) {
+    console.error('Error calling /trivia endpoint:', error.message);
+  }
 });
 
 // Exposed function to write data to the serial port

@@ -1,6 +1,7 @@
 // npm packages
 const express = require('express');
 const OpenAI = require('openai');
+const { writeToSerial } = require('./serial.js');
 require('dotenv').config();
 
 // PLEASE insert API key from discord and REMOVE before commits
@@ -66,6 +67,10 @@ app.get('/trivia', async (req, res) => {
         // Testing
         console.log(questionArray);
         console.log(answerArray);
+
+        // Write to serial
+        writeToSerial(questionArray.join());
+        writeToSerial(answerArray.join());
 
     } catch (error) {
         console.error(error);
