@@ -27,31 +27,36 @@ function setUpSerial() {
 
   // Listen for data from Arduino (requesting more questions)
   parser.on('data', async (data) => {
-    console.log('Received from Arduino:', data.trim());
 
-    // Make a request for questions
-    console.log('Making a call to /trivia endpoint...');
+    if (data.trim() == "GETQUESTIONS") {
+      // Make a request for questions
+      //console.log('Making a call to /trivia endpoint...');
 
-    try {
-      const response = await axios.get('http://localhost:3000/trivia');
+      try {
+        const response = await axios.get('http://localhost:3000/trivia');
 
-      if (response) {
-        console.log(response.data);
+        if (response) {
+          //console.log(response.data);
 
-        let questionString="";
-        let answerString = "";
+          let questionString = "";
+          let answerString = "";
 
-        triviaData.forEach(element => {
+          triviaData.forEach(element => {
             questionString += `${element.question},`;
             answerString += `${element.answer},`;
-        });
+          });
 
-        writeToSerial(questionString);
-        writeToSerial(answerString);
+          writeToSerial(questionString);
+          writeToSerial(answerString);
+        }
+      } catch (error) {
+        console.error('Error calling /trivia endpoint:', error.message);
       }
-    } catch (error) {
-      console.error('Error calling /trivia endpoint:', error.message);
     }
+    else {
+      console.log(data.trim());
+    }
+
   });
 }
 
