@@ -65,6 +65,7 @@ app.get('/trivia', async (req, res) => {
             questionArray.push(element.question);
             answerArray.push(element.answer);
         });
+        
 
         // Testing
         console.log(questionArray);

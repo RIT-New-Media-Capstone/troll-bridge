@@ -37,7 +37,17 @@ function setUpSerial() {
 
       if (response) {
         console.log(response.data);
-        writeToSerial(response.data);
+
+        let questionString="";
+        let answerString = "";
+
+        triviaData.forEach(element => {
+            questionString += `${element.question},`;
+            answerString += `${element.answer},`;
+        });
+
+        writeToSerial(questionString);
+        writeToSerial(answerString);
       }
     } catch (error) {
       console.error('Error calling /trivia endpoint:', error.message);
