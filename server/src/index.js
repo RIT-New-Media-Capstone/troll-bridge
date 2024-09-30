@@ -1,7 +1,7 @@
 // npm packages
 const express = require('express');
 const OpenAI = require('openai');
-const { setupSerial } = require('./serial');
+const { setUpSerial } = require('./serial');
 require('dotenv').config();
 
 if (!process.env.API_KEY) {
