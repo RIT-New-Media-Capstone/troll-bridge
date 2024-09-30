@@ -10,7 +10,7 @@ if (!process.env.API_KEY) {
 }
 
 // Set up serial communication
-setupSerial();
+setUpSerial();
 
 const API_KEY = process.env.API_KEY;
 
