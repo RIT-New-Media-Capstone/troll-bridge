@@ -1,43 +1,84 @@
+// npm packages
 const express = require('express');
-const axios = require('axios');
+const OpenAI = require('openai');
+const { writeToSerial } = require('./serial.js');
 require('dotenv').config();
 
+// PLEASE insert API key from discord and REMOVE before commits
+if (!process.env.API_KEY) {
+    console.log("ERROR: NO API KEY FOUND IN .ENV");
+    return;
+}
+
+const API_KEY = process.env.API_KEY;
+
+// Create openai component
+const openai = new OpenAI({
+    apiKey: API_KEY,
+    organization: "org-C0V9tT5zjNoT3VLZp6IH4mwF",
+    project: "proj_kc8w1NtSPp6EjNPH8hGKComP"
+});
+
+// Create app and port
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_KEY = "Insert API Key when recieved";
 
+app.use(express.json());
+
+// API call and handling responser
 app.get('/trivia', async (req, res) => {
     try {
-        const response = await axios.post(
-            'https://api.openai.com/v1/completions',
-            {
-                model: 'gpt-3.5-turbo',
-                prompt: 'Generate a JSON array of 10 "true or false" trivia questions with their answers formatted by "question" object (string) and "answer" object (boolean).',
-                max_tokens: 10,
-                n: 1,
-                stop: null,
-                temperature: 0.7
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env.API_KEY}`
-                }
-            }
-        );
+        // Call openai using openai npm
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: "You are a trivia game creator." },
+                { role: "user", content: "Please generate 10 trivia questions and their corresponding answers in JSON format. The questions must be true or false, and the answer must be a boolean value. Respond with nothing other thatn the json, no words or text." }
+            ],
+            max_tokens: 500
+        });
 
-        const triviaData = response.data.choices[0].text.trim();
+        let triviaData;
 
-        res.json(JSON.parse(triviaData));
+        // Parse String response
+        const triviaResponse = response.choices[0].message.content;
+        let responseString = triviaResponse.replace(/```json|```/g, '');
+        responseString = responseString.replace(/\n/g, '').trim();
 
-        /*Add the serialport functionality here*/
+        // Parse JSON
+        try {
+            triviaData = JSON.parse(responseString);
+        } catch (error) {
+            triviaData = { error: 'Failed to parse JSON', response: responseString };
+        }
+
+        // Testing
+        res.json(triviaData);
+
+        // Fill question and answer arrays
+        let questionArray=[];
+        let answerArray = [];
+
+        triviaData.forEach(element => {
+            questionArray.push(element.question);
+            answerArray.push(element.answer);
+        });
+
+        // Testing
+        console.log(questionArray);
+        console.log(answerArray);
+
+        // Write to serial
+        writeToSerial(questionArray.join());
+        writeToSerial(answerArray.join());
 
     } catch (error) {
-        console.error('Error fetching trivia data:', error);
-        res.status(500).json({ error: 'Failed to fetch trivia data' });
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching trivia questions' });
     }
 });
 
+// Hosting
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
