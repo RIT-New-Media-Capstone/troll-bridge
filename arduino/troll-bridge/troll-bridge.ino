@@ -24,6 +24,11 @@ int unlocktime = 3000;
 String question = "";
 boolean answer = false;
 
+int qIndex = 0;
+
+String questions[10];
+bool answers[10];
+
 // state machine
 enum states {awaitingResponse, armed, gettingQuestionAnswer, unlocked};
 states state;
@@ -31,7 +36,7 @@ states state;
 void setup()
 {
   Serial.begin(9600);
-  Serial.println("begin");
+  Serial.println("-----------------");
 
   servo_10.attach(10, 500, 2500);
 
@@ -42,42 +47,60 @@ void setup()
   pinMode(2, INPUT);
   pinMode(3, INPUT);
 
+  getQuestions();
   rearm();
 }
 
 void loop()
 {
+  //Serial.println(qIndex);
   trueButtonState = digitalRead(2);
   falseButtonState = digitalRead(3);
 
   switch (state) {
+    case gettingQuestionAnswer:
+
+      nextQuestion();
+      
+      delay(1000);
+
+      // update state
+      state = awaitingResponse;
+      // ask question
+      askQuestion();
+
+      break;
     case awaitingResponse: // wait for answer from user
       if (trueButtonState == HIGH) {
-        Serial.println("input: TRUE");
+        //Serial.println("input: TRUE");
         // if TRUE is the correct answer unlock door
         if(answer == true) {
           Serial.println("CORRECT!!!! :D");
           state = unlocked;
+          nextQuestion();
           unlock();
         }
         else {
           Serial.println("WRONG!!!! >:(");
           flashIncorrect();
+          nextQuestion();
           askQuestion();
         }
         break;
       }
       else if (falseButtonState == HIGH) {
         // if FALSE is the correct answer unlock door
-        Serial.println("input: FALSE");
+        //Serial.println("input: FALSE");
         if(answer == false) {
           Serial.println("CORRECT!!!! :D");
           state = unlocked;
+          nextQuestion();
           unlock();
         }
         else{
           Serial.println("WRONG!!!! >:(");
           flashIncorrect();
+          nextQuestion();
           askQuestion();
         }
         break;
@@ -89,7 +112,6 @@ void loop()
     case armed:
       if (falseButtonState == HIGH || trueButtonState == HIGH) {
         state = gettingQuestionAnswer;
-        getQuestionAnswer();
       }
       break;
 
@@ -108,30 +130,29 @@ void flashIncorrect() {
     digitalWrite(RED_LED_PIN, HIGH);
     delay(200);
   }
+
+  if (qIndex > 10) {
+    getQuestions();
+  }
 }
 
-void getQuestionAnswer() {
-  Serial.println("getting Q/A");
-
-  question = "Is Mount Everest the tallest mountain";
-  answer = true;
-
-  // this function will take time in the future when API is implemented
-  delay(1000);
-
-  // once q/a has been recieved prompt user
-  askQuestion();
+void nextQuestion() {
+  if (qIndex > 9) {
+    getQuestions();
+    qIndex = 0;
+  }
+  // temporary fake data retrieval 
+  question = questions[qIndex];
+  answer = answers[qIndex];
+  qIndex++;
 }
 
 void askQuestion() {
-  Serial.println("asking question");
+  //Serial.println("asking question");
 
   // output question
   Serial.print(question);
   Serial.println("?");
-
-  // update state
-  state = awaitingResponse;
 }
 
 // lock door
@@ -146,14 +167,14 @@ void rearm()
   // update state
   state = armed;
 
-  Serial.println("servo set to 0");
+  //Serial.println("servo set to 0");
   servo_10.write(0);
 }
 
 //unlock door
 void unlock()
 {
-  Serial.println("unlocking");
+  //Serial.println("unlocking");
 
   // update LEDs
   digitalWrite(GREEN_LED_PIN, HIGH);
@@ -165,4 +186,31 @@ void unlock()
   delay(unlocktime);
 
   rearm();
+}
+
+// Function to initialize the arrays
+void getQuestions() {
+    // Assign values to questions
+    questions[0] = "Is the Earth round";
+    questions[1] = "Do dolphins breathe air";
+    questions[2] = "Is fire a chemical reaction";
+    questions[3] = "Do humans have 3 lungs";
+    questions[4] = "Can birds fly";
+    questions[5] = "Is the Great Wall of China visible from space";
+    questions[6] = "Is the human body mostly water";
+    questions[7] = "Do snakes have legs";
+    questions[8] = "Is 2 a prime number";
+    questions[9] = "Do spiders have six legs";
+
+    // Assign values to answers
+    answers[0] = true;
+    answers[1] = true;
+    answers[2] = true;
+    answers[3] = false;
+    answers[4] = true;
+    answers[5] = false;
+    answers[6] = true;
+    answers[7] = false;
+    answers[8] = true;
+    answers[9] = false;
 }
