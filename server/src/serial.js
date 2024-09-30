@@ -46,8 +46,12 @@ function setUpSerial() {
             answerString += `${element.answer},`;
           });
 
-          writeToSerial(questionString);
-          writeToSerial(answerString);
+          let writeToSerialString = questionString + "NEXTARRAY," + answerString
+
+          //writeToSerial(questionString);
+          //writeToSerial(answerString);
+          writeToSerial(writeToSerialString)
+          //writeToSerial(writeToSerialString.slice(0,writeToSerialString.length-1));
         }
       } catch (error) {
         console.error('Error calling /trivia endpoint:', error.message);

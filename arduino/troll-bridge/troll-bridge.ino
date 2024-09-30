@@ -19,18 +19,20 @@ int trueButtonState = 0;
 int falseButtonState = 0;
 
 // delays
-int unlocktime = 3000;
+int unlocktime = 5000;
 
 String question = "";
 boolean answer = false;
 
+String incomingStr = "";
+
 int qIndex = 0;
 
-String questions[10];
-bool answers[10];
+String questions[5];
+bool answers[5];
 
 // state machine
-enum states {awaitingResponse, armed, gettingQuestionAnswer, unlocked};
+enum states {initialized, awaitingQuestions, parsingQuestions, awaitingResponse, armed, unlocked};
 states state;
 
 void setup()
@@ -47,8 +49,9 @@ void setup()
   pinMode(2, INPUT);
   pinMode(3, INPUT);
 
+  state = initialized;
+  
   getQuestions();
-  rearm();
 }
 
 void loop()
@@ -58,17 +61,23 @@ void loop()
   falseButtonState = digitalRead(3);
 
   switch (state) {
-    case gettingQuestionAnswer:
+    case awaitingQuestions:
+      if (Serial.available() > 0) {
+        // read the incoming byte:
+        incomingStr = Serial.readString();
 
-      nextQuestion();
-      
-      delay(1000);
+        //Serial.print("Recieved: ");
+        //Serial.println(incomingStr);
 
-      // update state
-      state = awaitingResponse;
-      // ask question
-      askQuestion();
+        delay(1000);
 
+        parseQuestions(incomingStr);
+
+        //state = parsingQuestions;
+      }
+      break;
+    case parsingQuestions:
+      parseQuestions(incomingStr);
       break;
     case awaitingResponse: // wait for answer from user
       if (trueButtonState == HIGH) {
@@ -77,14 +86,16 @@ void loop()
         if(answer == true) {
           Serial.println("CORRECT!!!! :D");
           state = unlocked;
-          nextQuestion();
           unlock();
         }
         else {
           Serial.println("WRONG!!!! >:(");
           flashIncorrect();
-          nextQuestion();
           askQuestion();
+        }
+        if (qIndex > 5) {
+          getQuestions();
+          qIndex = 0;
         }
         break;
       }
@@ -94,14 +105,16 @@ void loop()
         if(answer == false) {
           Serial.println("CORRECT!!!! :D");
           state = unlocked;
-          nextQuestion();
           unlock();
         }
         else{
           Serial.println("WRONG!!!! >:(");
           flashIncorrect();
-          nextQuestion();
           askQuestion();
+        }
+        if (qIndex > 5) {
+          getQuestions();
+          qIndex = 0;
         }
         break;
       }
@@ -111,13 +124,15 @@ void loop()
     
     case armed:
       if (falseButtonState == HIGH || trueButtonState == HIGH) {
-        state = gettingQuestionAnswer;
+        askQuestion();
       }
       break;
 
     default:
       break;
   }
+
+  //Serial.println(state);
 
   delay(10);
 }
@@ -130,17 +145,9 @@ void flashIncorrect() {
     digitalWrite(RED_LED_PIN, HIGH);
     delay(200);
   }
-
-  if (qIndex > 10) {
-    getQuestions();
-  }
 }
 
 void nextQuestion() {
-  if (qIndex > 9) {
-    getQuestions();
-    qIndex = 0;
-  }
   // temporary fake data retrieval 
   question = questions[qIndex];
   answer = answers[qIndex];
@@ -149,10 +156,13 @@ void nextQuestion() {
 
 void askQuestion() {
   //Serial.println("asking question");
+  nextQuestion();
+  delay(1000);
+  // update state
+  state = awaitingResponse;
 
   // output question
-  Serial.print(question);
-  Serial.println("?");
+  Serial.println(question);
 }
 
 // lock door
@@ -190,27 +200,57 @@ void unlock()
 
 // Function to initialize the arrays
 void getQuestions() {
-    // Assign values to questions
-    questions[0] = "Is the Earth round";
-    questions[1] = "Do dolphins breathe air";
-    questions[2] = "Is fire a chemical reaction";
-    questions[3] = "Do humans have 3 lungs";
-    questions[4] = "Can birds fly";
-    questions[5] = "Is the Great Wall of China visible from space";
-    questions[6] = "Is the human body mostly water";
-    questions[7] = "Do snakes have legs";
-    questions[8] = "Is 2 a prime number";
-    questions[9] = "Do spiders have six legs";
+  if (state != awaitingQuestions) {
+    Serial.println("GETQUESTIONS");
+    state = awaitingQuestions;
+  }
+}
 
-    // Assign values to answers
-    answers[0] = true;
-    answers[1] = true;
-    answers[2] = true;
-    answers[3] = false;
-    answers[4] = true;
-    answers[5] = false;
-    answers[6] = true;
-    answers[7] = false;
-    answers[8] = true;
-    answers[9] = false;
+void parseQuestions(String rawStr) {
+  Serial.println("entering parseQuestions");
+  // Convert the String to a char array to work with strtok()
+  char inputCharArray[rawStr.length() + 1];
+  rawStr.toCharArray(inputCharArray, rawStr.length() + 1);
+
+  // Use strtok() to split the input string by commas
+  char* token = strtok(inputCharArray, ",");
+
+  int index = 0;
+  bool q = true;
+  while (token != NULL) {
+    Serial.print(token);
+    Serial.print(" -> ");
+    // Store the token into the array
+    if (String(token).equals("NEXTARRAY")) {
+      q = false;
+      index = 0;
+      Serial.println("REMOVED (HOPEFULLY)");
+      token = strtok(NULL, ",");
+      continue;
+    }
+    if (q) {
+      questions[index] = String(token);
+      //Serial.println(String(token));
+    }
+    else {
+      answers[index] = (String(token).equals("true"));
+      //Serial.println(answers[index]);
+    }
+    index++;
+    token = strtok(NULL, ","); // Continue splitting
+    if (!q && index == 5) {
+      token = strtok(NULL, ","); // Continue splitting
+    }
+  }
+
+  // Print out the parsed strings
+Serial.println("Parsed questions:");
+for (int i = 0; i < 5; i++) {
+  Serial.print(questions[i]);
+  Serial.print(" = ");
+  Serial.println(answers[i]);
+}
+
+  //arm
+  rearm();
 }

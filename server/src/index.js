@@ -35,7 +35,7 @@ app.get('/trivia', async (req, res) => {
             model: "gpt-4o-mini",
             messages: [
                 { role: "system", content: "You are a trivia game creator." },
-                { role: "user", content: "Please generate 10 trivia questions and their corresponding answers in JSON format. The questions must be true or false, and the answer must be a boolean value. Respond with nothing other thatn the json, no words or text." }
+                { role: "user", content: "Please generate 5 trivia questions and their corresponding answers in JSON format. The questions must be true or false, and the answer must be a boolean value. Respond with nothing other than the json, no words or text." }
             ],
             max_tokens: 500
         });
