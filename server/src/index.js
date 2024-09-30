@@ -1,12 +1,18 @@
 // npm packages
 const express = require('express');
 const OpenAI = require('openai');
+const { setupSerial } = require('./serial');
+
+require('serial.js');
 require('dotenv').config();
 
 if (!process.env.API_KEY) {
     console.log("ERROR: NO API KEY FOUND IN .ENV");
     return;
 }
+
+// Set up serial communication
+setupSerial();
 
 const API_KEY = process.env.API_KEY;
 

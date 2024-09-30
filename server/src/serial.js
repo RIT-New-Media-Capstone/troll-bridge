@@ -9,36 +9,41 @@ if (!process.env.USB_PATH) {
   return;
 }
 
-const port = new SerialPort(process.env.USB_PATH, { baudRate: 9600 });
-const parser = port.pipe(new Readline({ delimiter: '\n' }));
+let port;
 
-// Open serialport and handle errors
-port.on('open', () => {
-  console.log('Serial port opened.');
-});
+function setUpSerial() {
+  port = new SerialPort(process.env.USB_PATH, { baudRate: 9600 });
+  const parser = port.pipe(new Readline({ delimiter: '\n' }));
 
-// Error handling
-port.on('error', (err) => {
-  console.log('Error: ', err.message);
-});
+  // Open serialport and handle errors
+  port.on('open', () => {
+    console.log('Serial port opened.');
+  });
 
-// Listen for data from Arduino (requesting more questions)
-parser.on('data', async (data) => {
-  console.log('Received from Arduino:', data.trim());
+  // Error handling
+  port.on('error', (err) => {
+    console.log('Error: ', err.message);
+  });
 
-  // Make a request for questions
-  console.log('Making a call to /trivia endpoint...');
+  // Listen for data from Arduino (requesting more questions)
+  parser.on('data', async (data) => {
+    console.log('Received from Arduino:', data.trim());
 
-  try {
-    const response = await axios.get('http://localhost:3000/trivia');
+    // Make a request for questions
+    console.log('Making a call to /trivia endpoint...');
 
-    if (response) {
-      console.log(response.data);
+    try {
+      const response = await axios.get('http://localhost:3000/trivia');
+
+      if (response) {
+        console.log(response.data);
+        writeToSerial(response.data);
+      }
+    } catch (error) {
+      console.error('Error calling /trivia endpoint:', error.message);
     }
-  } catch (error) {
-    console.error('Error calling /trivia endpoint:', error.message);
-  }
-});
+  });
+}
 
 // Exposed function to write data to the serial port
 function writeToSerial(data) {
@@ -50,3 +55,5 @@ function writeToSerial(data) {
     }
   });
 }
+
+module.exports = { setUpSerial };
