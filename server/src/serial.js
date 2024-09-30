@@ -41,7 +41,7 @@ function setUpSerial() {
           let questionString = "";
           let answerString = "";
 
-          triviaData.forEach(element => {
+          response.data.forEach(element => {
             questionString += `${element.question},`;
             answerString += `${element.answer},`;
           });
