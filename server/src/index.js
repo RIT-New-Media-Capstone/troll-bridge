@@ -2,8 +2,6 @@
 const express = require('express');
 const OpenAI = require('openai');
 const { setupSerial } = require('./serial');
-
-require('serial.js');
 require('dotenv').config();
 
 if (!process.env.API_KEY) {
