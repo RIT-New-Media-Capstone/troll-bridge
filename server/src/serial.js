@@ -1,5 +1,5 @@
-const SerialPort = require('serialport');
-const Readline = require('@serialport/parser-readline');
+const { SerialPort } = require('serialport')
+const { ReadlineParser } = require('@serialport/parser-readline')
 const axios = require('axios');
 require('dotenv').config();
 
@@ -12,8 +12,8 @@ if (!process.env.USB_PATH) {
 let port;
 
 function setUpSerial() {
-  port = new SerialPort(process.env.USB_PATH, { baudRate: 9600 });
-  const parser = port.pipe(new Readline({ delimiter: '\n' }));
+  port = new SerialPort({ path: process.env.USB_PATH, baudRate: 9600 });
+  const parser = port.pipe(new ReadlineParser({ delimiter: '\n' }));
 
   // Open serialport and handle errors
   port.on('open', () => {
