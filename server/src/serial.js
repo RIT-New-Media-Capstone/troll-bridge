@@ -1,9 +1,15 @@
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 const axios = require('axios');
+require('dotenv').config();
 
 // Adjust the arduino path
-const port = new SerialPort('/dev/ttyUSB0', { baudRate: 9600 });
+if (!process.env.USB_PATH) {
+  console.log("ERROR: NO USB PATH FOUND. RUN npm find-ports");
+  return;
+}
+
+const port = new SerialPort(process.env.USB_PATH, { baudRate: 9600 });
 const parser = port.pipe(new Readline({ delimiter: '\n' }));
 
 // Open serialport and handle errors
@@ -24,7 +30,11 @@ parser.on('data', async (data) => {
   console.log('Making a call to /trivia endpoint...');
 
   try {
-    await axios.get('http://localhost:3000/trivia');
+    const response = await axios.get('http://localhost:3000/trivia');
+
+    if (response) {
+      console.log(response.data);
+    }
   } catch (error) {
     console.error('Error calling /trivia endpoint:', error.message);
   }
@@ -40,6 +50,3 @@ function writeToSerial(data) {
     }
   });
 }
-
-// Export the function so it can be used in other files
-module.exports = { writeToSerial };

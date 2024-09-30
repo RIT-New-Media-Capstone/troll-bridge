@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
+    "find-ports": "node src/utilListPorts.js",
     "pretest": "eslint ./server --fix",
     "test": "echo \"Tests complete\"",
     "build": "webpack"

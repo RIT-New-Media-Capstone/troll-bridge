@@ -1,10 +1,8 @@
 // npm packages
 const express = require('express');
 const OpenAI = require('openai');
-const { writeToSerial } = require('./serial.js');
 require('dotenv').config();
 
-// PLEASE insert API key from discord and REMOVE before commits
 if (!process.env.API_KEY) {
     console.log("ERROR: NO API KEY FOUND IN .ENV");
     return;
@@ -54,7 +52,7 @@ app.get('/trivia', async (req, res) => {
 
         // Testing
         res.json(triviaData);
-
+        /*
         // Fill question and answer arrays
         let questionArray=[];
         let answerArray = [];
@@ -70,7 +68,7 @@ app.get('/trivia', async (req, res) => {
 
         // Write to serial
         writeToSerial(questionArray.join());
-        writeToSerial(answerArray.join());
+        writeToSerial(answerArray.join());*/
 
     } catch (error) {
         console.error(error);
